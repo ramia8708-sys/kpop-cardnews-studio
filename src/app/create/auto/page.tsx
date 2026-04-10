@@ -172,21 +172,40 @@ export default function AutoCreatePage() {
               </div>
             ) : (
               <div className="space-y-2">
-                {s.articles.map((article, i) => (
-                  <button
-                    key={i}
-                    onClick={() => s.setSelectedArticle(article)}
-                    className={`w-full rounded-xl border p-4 text-left transition-all ${
-                      s.selectedArticle?.link === article.link
-                        ? 'border-[var(--accent)] bg-[var(--accent-light)]/30'
-                        : 'border-[var(--border)] hover:border-[var(--accent)]/50 hover:bg-gray-50'
-                    }`}
-                  >
-                    <h3 className="text-sm font-semibold">{article.title}</h3>
-                    <p className="mt-1 text-xs text-[var(--muted)] line-clamp-2">{article.summary}</p>
-                    {article.date && <span className="mt-1 inline-block text-[10px] text-gray-400">{article.date}</span>}
-                  </button>
-                ))}
+                {s.articles.map((article, i) => {
+                  const isSelected = s.selectedArticle?.link === article.link;
+                  return (
+                    <div
+                      key={i}
+                      onClick={() => s.setSelectedArticle(article)}
+                      className={`w-full cursor-pointer rounded-xl border p-4 text-left transition-all ${
+                        isSelected
+                          ? 'border-[var(--accent)] bg-[var(--accent-light)]/30'
+                          : 'border-[var(--border)] hover:border-[var(--accent)]/50 hover:bg-gray-50'
+                      }`}
+                    >
+                      <h3 className="text-sm font-semibold">{article.title}</h3>
+                      <p className={`mt-1 text-xs text-[var(--muted)] ${isSelected ? '' : 'line-clamp-2'}`}>
+                        {article.summary}
+                      </p>
+                      {article.date && <span className="mt-1 inline-block text-[10px] text-gray-400">{article.date}</span>}
+                      {isSelected && (
+                        <div className="mt-3 flex justify-end">
+                          <a
+                            href={article.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--accent)] px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 transition-colors"
+                          >
+                            기사 바로가기
+                            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
