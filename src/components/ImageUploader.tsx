@@ -131,11 +131,11 @@ export default function ImageUploader({ imageUrl, onImageChange }: ImageUploader
       </details>
 
       {imageUrl && (
-        <div className="relative overflow-hidden rounded-xl border border-[var(--border)]">
+        <div className="relative inline-flex rounded-xl border border-[var(--border)] overflow-hidden">
           <img
             src={imageUrl}
             alt="배경 미리보기"
-            className="h-32 w-full object-cover"
+            className="max-h-48 max-w-full object-contain"
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
           />
           <button
