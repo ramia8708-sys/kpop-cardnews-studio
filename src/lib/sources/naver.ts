@@ -30,49 +30,41 @@ export async function fetchNaverNews(query: string): Promise<NewsItem[]> {
     const items: NewsItem[] = [];
 
     // 네이버 뉴스 검색 결과 파싱 (2024~2026 신규 구조)
-    // .list_news 안의 각 뉴스 아이템은 외부 링크(원문)를 가진 a 태그 쌍으로 구성됨
-    // 제목 a와 요약 a가 같은 href를 공유하며, 네이버/Keep 링크는 제외
-    const seen = new Set<string>();
-    const allLinks = $('.list_news a');
+    // 각 뉴스 블록(.bx)에서 제목, 요약, 날짜를 추출
+    const newsBlocks = $('.list_news .bx');
 
-    allLinks.each((_, el) => {
-      const $a = $(el);
-      const href = $a.attr('href') ?? '';
-      const text = $a.text().trim();
+    newsBlocks.each((_, block) => {
+      const $block = $(block);
 
-      // 네이버 내부 링크, Keep, 빈 텍스트 제외
-      if (
-        !href ||
-        !text ||
-        href.startsWith('#') ||
-        href.startsWith('javascript:') ||
-        href.includes('naver.com') ||
-        href.includes('keep.naver') ||
-        text.length < 5
-      ) {
-        return;
-      }
+      // 제목 + 링크 추출
+      const $titleLink = $block.find('.news_tit');
+      const title = $titleLink.attr('title')?.trim() || $titleLink.text().trim();
+      const link = $titleLink.attr('href') ?? '';
 
-      // 이미 본 링크면 요약으로 처리
-      if (seen.has(href)) {
-        const existing = items.find((item) => item.link === href);
-        if (existing && !existing.summary && text.length > existing.title.length) {
-          existing.summary = text;
-        }
-        return;
-      }
+      // 요약 추출
+      const summary = $block.find('.news_dsc .dsc_wrap').text().trim();
 
-      seen.add(href);
-      items.push({
-        title: text,
-        link: href,
-        summary: '',
-        date: '',
-      });
+      // 날짜 추출
+      const date = $block.find('.info_group .info').first().text().trim();
+
+      // 유효하지 않은 항목 제외
+      if (!title || !link || link.includes('naver.com')) return;
+
+      items.push({ title, link, summary, date });
+    });
+
+    // 본문(summary)이 없는 기사 제외
+    // 검색어(아티스트명)와 관련 없는 기사 제외 (제목이나 요약에 검색어 포함 여부)
+    const queryLower = query.toLowerCase().replace(/\s+/g, '');
+    const filtered = items.filter((item) => {
+      if (!item.summary || item.summary.length < 10) return false;
+      const titleLower = item.title.toLowerCase().replace(/\s+/g, '');
+      const summaryLower = item.summary.toLowerCase().replace(/\s+/g, '');
+      return titleLower.includes(queryLower) || summaryLower.includes(queryLower);
     });
 
     // 최대 10개
-    return items.slice(0, 10);
+    return filtered.slice(0, 10);
   } catch (err) {
     console.error(`[naver] Failed to fetch news for query: "${query}"`, err);
     return [];
