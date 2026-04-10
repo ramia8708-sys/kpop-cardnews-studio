@@ -19,7 +19,7 @@ const FONT_MAP: Record<string, string> = {
 };
 
 /**
- * 단일 카드 미리보기 — 1:1 비율
+ * 단일 카드 미리보기 — 4:5 세로형 비율
  * 배경: 업로드 사진 꽉 채움
  * 좌상단: tag, 하단: headline + 그라데이션 딤
  */
@@ -33,8 +33,9 @@ export default function CardPreview({
   return (
     <div className="relative w-full">
       <div
-        className="relative aspect-square w-full overflow-hidden rounded-2xl text-white shadow-lg"
+        className="relative w-full overflow-hidden rounded-2xl text-white shadow-lg"
         style={{
+          aspectRatio: '4 / 5',
           fontFamily,
           backgroundColor: card.image_url ? undefined : artist.brand_color,
         }}

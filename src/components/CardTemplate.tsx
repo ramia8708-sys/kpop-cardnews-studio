@@ -19,7 +19,7 @@ const FONT_FAMILY: Record<string, string> = {
 };
 
 /**
- * 단일 카드 템플릿 — 1080×1080
+ * 단일 카드 템플릿 — 1080×1350 (4:5 인스타 세로형)
  * 배경: 업로드 사진 꽉 채움
  * 좌상단: tag (채널명)
  * 하단: headline (굵은 텍스트, 그라데이션 딤)
@@ -35,7 +35,7 @@ export default function CardTemplate({
     <div
       style={{
         width: 1080,
-        height: 1080,
+        height: 1350,
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
@@ -56,7 +56,7 @@ export default function CardTemplate({
             top: 0,
             left: 0,
             width: 1080,
-            height: 1080,
+            height: 1350,
             objectFit: 'cover',
           }}
         />
@@ -79,7 +79,7 @@ export default function CardTemplate({
             bottom: 0,
             left: 0,
             right: 0,
-            height: 550,
+            height: 650,
             background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0) 100%)',
           }}
         />

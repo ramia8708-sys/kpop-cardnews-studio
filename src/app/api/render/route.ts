@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
 
     const svg = await satori(element, {
       width: 1080,
-      height: 1080,
+      height: 1350,
       fonts: fonts.map((f) => ({
         name: f.name,
         data: f.data,
