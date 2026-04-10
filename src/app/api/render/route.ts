@@ -23,10 +23,11 @@ let fontCache: FontData[] | null = null;
 async function loadFonts(): Promise<FontData[]> {
   if (fontCache) return fontCache;
 
+  // User-Agent를 IE11로 위장 → Google Fonts가 woff2 대신 ttf를 반환 (satori는 ttf만 지원)
   const cssRes = await fetch(GOOGLE_FONT_CSS, {
     headers: {
       'User-Agent':
-        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Mozilla/5.0 (Windows NT 10.0; Trident/7.0; rv:11.0) like Gecko',
     },
   });
   const css = await cssRes.text();
