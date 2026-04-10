@@ -48,18 +48,14 @@ export default function CardPreview({
           />
         )}
 
-        {/* 좌상단: tag */}
-        <div className="relative p-5">
-          <span className="inline-block rounded-full bg-black/45 px-3 py-1 text-[11px] font-bold backdrop-blur-sm">
-            {card.tag}
-          </span>
-        </div>
-
-        {/* 하단: headline + 딤 */}
+        {/* 하단: tag + headline + 딤 */}
         <div className="absolute inset-x-0 bottom-0">
-          <div className="h-48 bg-gradient-to-t from-black/75 to-transparent" />
+          <div className="h-56 bg-gradient-to-t from-black/75 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 p-5">
-            <h2 className="text-lg font-bold leading-snug sm:text-xl"
+            <div className="text-[13px] font-normal opacity-90 mb-1">
+              {card.tag}
+            </div>
+            <h2 className="text-2xl font-extrabold leading-tight sm:text-3xl"
               style={{ textShadow: '0 1px 8px rgba(0,0,0,0.4)' }}
             >
               {card.headline}

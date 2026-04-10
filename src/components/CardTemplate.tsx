@@ -62,35 +62,14 @@ export default function CardTemplate({
         />
       )}
 
-      {/* 좌상단: tag (채널 계정명) */}
-      <div
-        style={{
-          position: 'relative',
-          padding: '48px 56px 0',
-          display: 'flex',
-        }}
-      >
-        <div
-          style={{
-            background: 'rgba(0,0,0,0.45)',
-            borderRadius: 24,
-            padding: '8px 20px',
-            fontSize: 22,
-            fontWeight: 700,
-            letterSpacing: 0.5,
-          }}
-        >
-          {card.tag}
-        </div>
-      </div>
-
-      {/* 하단: headline + 그라데이션 딤 */}
+      {/* 하단: tag + headline + 그라데이션 딤 */}
       <div
         style={{
           position: 'relative',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'flex-end',
+          flex: 1,
         }}
       >
         {/* 딤 그라데이션 */}
@@ -100,7 +79,7 @@ export default function CardTemplate({
             bottom: 0,
             left: 0,
             right: 0,
-            height: 500,
+            height: 550,
             background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0) 100%)',
           }}
         />
@@ -112,11 +91,23 @@ export default function CardTemplate({
             flexDirection: 'column',
           }}
         >
+          {/* tag (채널명) — 제목 바로 위 */}
+          <div
+            style={{
+              fontSize: 28,
+              fontWeight: 400,
+              marginBottom: 12,
+              letterSpacing: 0.5,
+              opacity: 0.9,
+            }}
+          >
+            {card.tag}
+          </div>
           <h1
             style={{
-              fontSize: 56,
-              fontWeight: 700,
-              lineHeight: 1.35,
+              fontSize: 74,
+              fontWeight: 800,
+              lineHeight: 1.25,
               margin: 0,
               textShadow: '0 2px 16px rgba(0,0,0,0.4)',
             }}
