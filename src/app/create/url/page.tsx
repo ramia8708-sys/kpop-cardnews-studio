@@ -249,7 +249,7 @@ export default function UrlCreatePage() {
         </div>
       )}
 
-      {/* ── Step 4: 카드 미리보기 ─── */}
+      {/* ── Step 4: 카드 미리보기 (수정 가능) ─── */}
       {step === 4 && results && currentCard && (
         <div className="space-y-4">
           <div className="card">
@@ -274,13 +274,59 @@ export default function UrlCreatePage() {
             </div>
           </div>
 
+          {/* 헤드라인 수정 */}
+          <div className="card">
+            <label className="mb-1.5 flex items-center gap-2 text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
+              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>
+              Headline
+            </label>
+            <textarea
+              value={results[activeLanguage]?.headline || ''}
+              onChange={(e) => {
+                setResults({
+                  ...results,
+                  [activeLanguage]: { ...results[activeLanguage], headline: e.target.value },
+                });
+              }}
+              rows={2}
+              className="input resize-none"
+            />
+          </div>
+
+          {/* 캡션 수정 */}
           {results[activeLanguage] && (
-            <div className="card bg-gray-50">
-              <p className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">Caption</p>
-              <p className="mt-2 text-sm text-[var(--foreground)]">{results[activeLanguage].caption}</p>
-              <p className="mt-3 text-sm text-[var(--accent)]">
-                {results[activeLanguage].hashtags.map((h) => (h.startsWith('#') ? h : `#${h}`)).join(' ')}
-              </p>
+            <div className="card">
+              <label className="mb-1.5 flex items-center gap-2 text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
+                <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>
+                Caption
+              </label>
+              <textarea
+                value={results[activeLanguage].caption}
+                onChange={(e) => {
+                  setResults({
+                    ...results,
+                    [activeLanguage]: { ...results[activeLanguage], caption: e.target.value },
+                  });
+                }}
+                rows={4}
+                className="input resize-none"
+              />
+              <label className="mt-3 mb-1.5 flex items-center gap-2 text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
+                <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.25 8.25h15m-16.5 7.5h15m-1.8-13.5-3.9 19.5m-2.1-19.5-3.9 19.5" /></svg>
+                Hashtags
+              </label>
+              <input
+                type="text"
+                value={results[activeLanguage].hashtags.map((h) => (h.startsWith('#') ? h : `#${h}`)).join(' ')}
+                onChange={(e) => {
+                  const tags = e.target.value.split(/\s+/).filter(Boolean).map((t) => t.replace(/^#/, ''));
+                  setResults({
+                    ...results,
+                    [activeLanguage]: { ...results[activeLanguage], hashtags: tags },
+                  });
+                }}
+                className="input"
+              />
             </div>
           )}
 

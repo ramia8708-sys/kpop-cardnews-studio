@@ -51,6 +51,7 @@ interface CardNewsState {
   setGenerating: (g: boolean) => void;
   results: Record<string, CardContent> | null;
   setResults: (r: Record<string, CardContent> | null) => void;
+  updateResult: (lang: string, partial: Partial<CardContent>) => void;
   activeLanguage: string;
   setActiveLanguage: (l: string) => void;
 
@@ -94,6 +95,16 @@ export const useCardNewsStore = create<CardNewsState>((set) => ({
   setGenerating: (g) => set({ generating: g }),
   results: null,
   setResults: (r) => set({ results: r }),
+  updateResult: (lang, partial) =>
+    set((st) => {
+      if (!st.results || !st.results[lang]) return st;
+      return {
+        results: {
+          ...st.results,
+          [lang]: { ...st.results[lang], ...partial },
+        },
+      };
+    }),
   activeLanguage: 'ko',
   setActiveLanguage: (l) => set({ activeLanguage: l }),
 
