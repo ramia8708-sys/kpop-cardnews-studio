@@ -1,8 +1,7 @@
 export const runtime = 'nodejs';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile } from 'fs/promises';
-import path from 'path';
+import { createClient } from '@supabase/supabase-js';
 
 export async function POST(req: NextRequest) {
   try {
@@ -13,28 +12,43 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
-    // 이미지 파일만 허용
     if (!file.type.startsWith('image/')) {
       return NextResponse.json({ error: 'Only image files are allowed' }, { status: 400 });
     }
 
-    // 10MB 제한
     if (file.size > 10 * 1024 * 1024) {
       return NextResponse.json({ error: 'File size must be under 10MB' }, { status: 400 });
     }
 
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+      return NextResponse.json({ error: 'Storage not configured' }, { status: 500 });
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // 고유 파일명 생성
-    const ext = path.extname(file.name) || '.jpg';
-    const filename = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}${ext}`;
-    const uploadPath = path.join(process.cwd(), 'public', 'uploads', filename);
+    const ext = file.name.split('.').pop() || 'jpg';
+    const filename = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
 
-    await writeFile(uploadPath, buffer);
+    const { error } = await supabase.storage
+      .from('images')
+      .upload(filename, buffer, {
+        contentType: file.type,
+        upsert: false,
+      });
 
-    const imageUrl = `/uploads/${filename}`;
-    return NextResponse.json({ imageUrl });
+    if (error) {
+      console.error('[upload] Supabase error:', error);
+      return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
+    }
+
+    const { data: urlData } = supabase.storage.from('images').getPublicUrl(filename);
+    return NextResponse.json({ imageUrl: urlData.publicUrl });
   } catch (err) {
     console.error('[upload] Error:', err);
     return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
