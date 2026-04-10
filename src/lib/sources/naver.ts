@@ -29,32 +29,54 @@ export async function fetchNaverNews(query: string): Promise<NewsItem[]> {
     const $ = cheerio.load(html);
     const items: NewsItem[] = [];
 
-    // 네이버 뉴스 검색 결과 파싱 (2024~2026 신규 구조)
-    // 각 뉴스 블록(.bx)에서 제목, 요약, 날짜를 추출
-    const newsBlocks = $('.list_news .bx');
+    // 네이버 뉴스 검색 결과 파싱 (2026 fender-ui 구조)
+    // 제목 링크: a[class*='OhDwx'] — 같은 href를 가진 다음 링크가 요약
+    const seen = new Set<string>();
+    const allLinks = $('.list_news a');
 
-    newsBlocks.each((_, block) => {
-      const $block = $(block);
+    allLinks.each((_, el) => {
+      const $a = $(el);
+      const cls = $a.attr('class') || '';
+      const href = $a.attr('href') || '';
+      const text = $a.text().trim();
 
-      // 제목 + 링크 추출
-      const $titleLink = $block.find('.news_tit');
-      const title = $titleLink.attr('title')?.trim() || $titleLink.text().trim();
-      const link = $titleLink.attr('href') ?? '';
+      // 제목 링크 식별 (fender-ui 제목 클래스)
+      if (cls.includes('OhDwx') && href.startsWith('http') && text.length > 5) {
+        if (seen.has(href)) return;
+        seen.add(href);
+        items.push({ title: text, link: href, summary: '', date: '' });
+        return;
+      }
 
-      // 요약 추출
-      const summary = $block.find('.news_dsc .dsc_wrap').text().trim();
+      // 이미 등록된 링크와 같은 href면 → 요약 텍스트
+      if (href.startsWith('http') && seen.has(href)) {
+        const existing = items.find((item) => item.link === href);
+        if (existing && !existing.summary && text.length > 20) {
+          existing.summary = text;
+        }
+        return;
+      }
+    });
 
-      // 날짜 추출
-      const date = $block.find('.info_group .info').first().text().trim();
-
-      // 유효하지 않은 항목 제외
-      if (!title || !link || link.includes('naver.com')) return;
-
-      items.push({ title, link, summary, date });
+    // 날짜 추출: 각 뉴스 블록의 상위 컨테이너에서 시간 정보 추출
+    const containers = $('[class*="ELMWWj"]');
+    containers.each((_, el) => {
+      const $el = $(el);
+      const titleLink = $el.find('a[class*="OhDwx"]');
+      if (!titleLink.length) return;
+      const href = titleLink.attr('href') || '';
+      const item = items.find((it) => it.link === href);
+      if (!item) return;
+      // 시간 텍스트 (예: "3분 전", "1시간 전")
+      const infoText = $el.find('[class*="fender-ui"]').filter((_, e) => {
+        const t = $(e).text().trim();
+        return t.includes('전') || t.includes('일 전') || /\d{4}\.\d{2}\.\d{2}/.test(t);
+      }).first().text().trim();
+      if (infoText) item.date = infoText;
     });
 
     // 본문(summary)이 없는 기사 제외
-    // 검색어(아티스트명)와 관련 없는 기사 제외 (제목이나 요약에 검색어 포함 여부)
+    // 검색어(아티스트명)와 관련 없는 기사 제외
     const queryLower = query.toLowerCase().replace(/\s+/g, '');
     const filtered = items.filter((item) => {
       if (!item.summary || item.summary.length < 10) return false;
