@@ -28,6 +28,10 @@ export default function CardTemplate({
   language,
 }: CardTemplateProps) {
   const fontFamily = FONT_FAMILY[language] || 'DM Sans';
+  const brandColor = artist.brand_color || '#1e3a5f';
+  const headline = card.headline || '';
+  const tag = card.tag || '';
+  const hasImage = !!(card.image_url && card.image_url.length > 1);
 
   return (
     <div
@@ -41,11 +45,11 @@ export default function CardTemplate({
         color: '#ffffff',
         position: 'relative',
         overflow: 'hidden',
-        background: card.image_url ? undefined : artist.brand_color,
+        backgroundColor: hasImage ? '#000000' : brandColor,
       }}
     >
       {/* 배경 이미지 */}
-      {card.image_url && (
+      {hasImage && (
         <img
           src={card.image_url}
           alt=""
@@ -99,7 +103,7 @@ export default function CardTemplate({
               opacity: 0.9,
             }}
           >
-            {card.tag}
+            {tag}
           </div>
           <div
             style={{
@@ -112,7 +116,7 @@ export default function CardTemplate({
               flexDirection: 'column',
             }}
           >
-            {card.headline.split('\n').map((line, i) => (
+            {headline.split('\n').map((line, i) => (
               <span key={i}>{line}</span>
             ))}
           </div>

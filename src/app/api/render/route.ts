@@ -81,6 +81,12 @@ export async function POST(req: NextRequest) {
 
     const lang = language || 'ko';
 
+    // 입력값 정리 — undefined/null 방어
+    card.headline = card.headline || '';
+    card.tag = card.tag || '';
+    card.image_url = card.image_url || '';
+    artist.brand_color = artist.brand_color || '#1e3a5f';
+
     // 로컬 업로드 이미지를 절대 URL로 변환 (satori가 fetch할 수 있도록)
     if (card.image_url && card.image_url.startsWith('/')) {
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
