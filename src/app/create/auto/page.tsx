@@ -186,7 +186,9 @@ export default function AutoCreatePage() {
                     >
                       <h3 className="text-sm font-semibold">{article.title}</h3>
                       <p className={`mt-1 text-xs text-[var(--muted)] ${isSelected ? '' : 'line-clamp-2'}`}>
-                        {article.summary}
+                        {isSelected
+                          ? article.summary.slice(0, 400) + (article.summary.length > 400 ? '...' : '')
+                          : article.summary}
                       </p>
                       {article.date && <span className="mt-1 inline-block text-[10px] text-gray-400">{article.date}</span>}
                       {isSelected && (
