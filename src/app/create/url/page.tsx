@@ -111,7 +111,7 @@ export default function UrlCreatePage() {
       });
       const data = await res.json();
       if (!data.image) {
-        alert('렌더링 실패: ' + (data.error || '알 수 없는 오류'));
+        alert('렌더링 실패: ' + (data.detail || data.error || '알 수 없는 오류'));
         return;
       }
 
