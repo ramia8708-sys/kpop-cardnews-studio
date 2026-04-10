@@ -95,7 +95,7 @@ export default function CardTemplate({
           <div
             style={{
               fontSize: 28,
-              fontWeight: 700,
+              fontWeight: 900,
               marginBottom: 12,
               letterSpacing: 0.5,
               opacity: 0.9,
