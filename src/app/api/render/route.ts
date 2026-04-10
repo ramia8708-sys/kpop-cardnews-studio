@@ -11,12 +11,12 @@ import CardTemplate from '@/components/CardTemplate';
 interface FontData {
   name: string;
   data: ArrayBuffer;
-  weight: 400 | 700;
+  weight: number;
   style: 'normal';
 }
 
 const GOOGLE_FONT_CSS =
-  'https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&family=Noto+Sans+JP:wght@400;700&family=Noto+Sans+SC:wght@400;700&family=DM+Sans:wght@400;700&display=swap';
+  'https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;800;900&family=Noto+Sans+JP:wght@400;700;800;900&family=Noto+Sans+SC:wght@400;700;800;900&family=DM+Sans:wght@400;700;800;900&display=swap';
 
 let fontCache: FontData[] | null = null;
 
@@ -40,7 +40,7 @@ async function loadFonts(): Promise<FontData[]> {
 
   while ((match = faceRegex.exec(css)) !== null) {
     const name = match[1];
-    const weight = parseInt(match[3], 10) as 400 | 700;
+    const weight = parseInt(match[3], 10);
     const url = match[4];
     const key = `${name}-${weight}`;
 
@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
       fonts: fonts.map((f) => ({
         name: f.name,
         data: f.data,
-        weight: f.weight,
+        weight: f.weight as 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900,
         style: 'normal' as const,
       })),
     });

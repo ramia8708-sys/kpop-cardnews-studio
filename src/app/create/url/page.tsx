@@ -103,18 +103,25 @@ export default function UrlCreatePage() {
       image_url: imageUrl,
     };
 
-    const res = await fetch('/api/render', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ card, artist: DEFAULT_ARTIST, language: activeLanguage }),
-    });
-    const data = await res.json();
-    if (!data.image) return;
+    try {
+      const res = await fetch('/api/render', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ card, artist: DEFAULT_ARTIST, language: activeLanguage }),
+      });
+      const data = await res.json();
+      if (!data.image) {
+        alert('렌더링 실패: ' + (data.error || '알 수 없는 오류'));
+        return;
+      }
 
-    const link = document.createElement('a');
-    link.href = `data:image/png;base64,${data.image}`;
-    link.download = `cardnews_${activeLanguage}.png`;
-    link.click();
+      const link = document.createElement('a');
+      link.href = `data:image/png;base64,${data.image}`;
+      link.download = `cardnews_${activeLanguage}.png`;
+      link.click();
+    } catch (err) {
+      alert('다운로드 실패: ' + String(err));
+    }
   };
 
   const currentCard: CardData | null = results?.[activeLanguage]
