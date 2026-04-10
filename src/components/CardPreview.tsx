@@ -56,7 +56,7 @@ export default function CardPreview({
             <div className="text-[13px] font-black opacity-90 mb-1">
               {card.tag}
             </div>
-            <h2 className="text-2xl font-extrabold leading-tight sm:text-3xl"
+            <h2 className="text-2xl font-extrabold leading-tight sm:text-3xl whitespace-pre-line"
               style={{ textShadow: '0 1px 8px rgba(0,0,0,0.4)' }}
             >
               {card.headline}

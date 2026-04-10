@@ -103,17 +103,21 @@ export default function CardTemplate({
           >
             {card.tag}
           </div>
-          <h1
+          <div
             style={{
               fontSize: 74,
               fontWeight: 800,
               lineHeight: 1.25,
               margin: 0,
               textShadow: '0 2px 16px rgba(0,0,0,0.4)',
+              display: 'flex',
+              flexDirection: 'column',
             }}
           >
-            {card.headline}
-          </h1>
+            {card.headline.split('\n').map((line, i) => (
+              <span key={i}>{line}</span>
+            ))}
+          </div>
         </div>
       </div>
     </div>
