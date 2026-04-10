@@ -52,7 +52,7 @@ export default function CardPreview({
         <div className="absolute inset-x-0 bottom-0">
           <div className="h-56 bg-gradient-to-t from-black/75 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 p-5">
-            <div className="text-[13px] font-normal opacity-90 mb-1">
+            <div className="text-[13px] font-bold opacity-90 mb-1">
               {card.tag}
             </div>
             <h2 className="text-2xl font-extrabold leading-tight sm:text-3xl"

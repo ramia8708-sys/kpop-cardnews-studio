@@ -66,7 +66,7 @@ export async function generateCardContent(
 
   const response = await anthropic.messages.create({
     model: 'claude-sonnet-4-20250514',
-    max_tokens: 1024,
+    max_tokens: 2048,
     system: `You are a K-pop card news editor. ${langConfig.systemInstruction}. Respond ONLY with valid JSON.`,
     messages: [
       {
@@ -76,15 +76,15 @@ export async function generateCardContent(
 Return JSON in this exact format:
 {
   "language": "${language}",
-  "headline": "short impactful headline (max 2 lines)",
-  "caption": "Instagram caption text (2-3 lines)",
+  "headline": "short impactful headline (MUST be under 30 chars)",
+  "caption": "detailed Instagram caption (8-10 lines)",
   "hashtags": ["hashtag1", "hashtag2", "hashtag3", "hashtag4", "hashtag5"]
 }
 
 Rules:
-- Headline: max 50 characters, bold and attention-grabbing
+- Headline: MUST be under 30 characters to fit within 2 lines on a card. Bold, punchy, attention-grabbing
 - Hashtags: use ${langConfig.hashtagStyle}, provide 5-8 tags
-- Caption: 2-3 lines suitable for Instagram
+- Caption: Write 8-10 lines of detailed, engaging Instagram caption. Include news context, fan reactions, and relevant details. Make it informative and exciting
 
 News article:
 ${newsText}`,
