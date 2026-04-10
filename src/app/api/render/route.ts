@@ -103,8 +103,15 @@ export async function POST(req: NextRequest) {
       })),
     });
 
-    const png = await sharp(Buffer.from(svg)).png({ quality: 90 }).toBuffer();
-    const image = png.toString('base64');
+    const svgBuffer = Buffer.from(svg);
+    const pngBuffer = await sharp(svgBuffer).png().toBuffer();
+    if (!pngBuffer) {
+      return NextResponse.json(
+        { error: 'Render failed', detail: 'sharp returned empty buffer' },
+        { status: 500 }
+      );
+    }
+    const image = pngBuffer.toString('base64');
 
     return NextResponse.json({ image });
   } catch (err) {
