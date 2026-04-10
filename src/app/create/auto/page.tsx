@@ -45,20 +45,37 @@ export default function AutoCreatePage() {
     };
 
     try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 30000);
+
       const res = await fetch('/api/render', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ card, artist: s.artist, language: s.activeLanguage }),
+        signal: controller.signal,
       });
-      const data = await res.json();
-      if (!data.svg) {
-        setRenderError(data.detail || data.error || '렌더링 실패');
+      clearTimeout(timeout);
+
+      if (!res.ok) {
+        const text = await res.text();
+        setRenderError(`서버 오류 (${res.status}): ${text.slice(0, 200)}`);
         return;
       }
+
+      const data = await res.json();
+      if (!data.svg) {
+        setRenderError(data.detail || data.error || '렌더링 실패: SVG 없음');
+        return;
+      }
+
       const pngDataUrl = await svgToPng(data.svg);
       setRenderedImage(pngDataUrl);
     } catch (err) {
-      setRenderError(String(err));
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        setRenderError('서버 응답 시간 초과 (30초). 다시 시도해주세요.');
+      } else {
+        setRenderError(String(err));
+      }
     } finally {
       setRendering(false);
     }
