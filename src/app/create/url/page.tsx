@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import LanguagePicker from '@/components/LanguagePicker';
 import ImageUploader from '@/components/ImageUploader';
 import CardPreview from '@/components/CardPreview';
 import type { CardData, Artist } from '@/types';
 import type { CardContent } from '@/lib/ai/generateCard';
+import { svgToPng } from '@/lib/svgToPng';
 
 type Step = 1 | 2 | 3 | 4 | 5;
 const STEP_LABELS = ['URL 입력', '미리보기', '카드 생성 중', '미리보기', '내보내기'];
@@ -36,6 +37,9 @@ export default function UrlCreatePage() {
   const [generating, setGenerating] = useState(false);
   const [results, setResults] = useState<Record<string, CardContent> | null>(null);
   const [activeLanguage, setActiveLanguage] = useState('ko');
+  const [renderedImage, setRenderedImage] = useState('');
+  const [rendering, setRendering] = useState(false);
+  const [renderError, setRenderError] = useState('');
 
   useEffect(() => {
     const saved = localStorage.getItem('channel_tag');
@@ -91,11 +95,14 @@ export default function UrlCreatePage() {
     }
   };
 
-  // 다운로드
-  const handleDownload = async () => {
+  const renderCard = useCallback(async () => {
     if (!results) return;
     const content = results[activeLanguage];
     if (!content) return;
+
+    setRendering(true);
+    setRenderError('');
+    setRenderedImage('');
 
     const card: CardData = {
       tag: channelTag || 'K-pop News',
@@ -110,19 +117,22 @@ export default function UrlCreatePage() {
         body: JSON.stringify({ card, artist: DEFAULT_ARTIST, language: activeLanguage }),
       });
       const data = await res.json();
-      if (!data.image) {
-        alert('렌더링 실패: ' + (data.detail || data.error || '알 수 없는 오류'));
+      if (!data.svg) {
+        setRenderError(data.detail || data.error || '렌더링 실패');
         return;
       }
-
-      const link = document.createElement('a');
-      link.href = `data:image/png;base64,${data.image}`;
-      link.download = `cardnews_${activeLanguage}.png`;
-      link.click();
+      const pngDataUrl = await svgToPng(data.svg);
+      setRenderedImage(pngDataUrl);
     } catch (err) {
-      alert('다운로드 실패: ' + String(err));
+      setRenderError(String(err));
+    } finally {
+      setRendering(false);
     }
-  };
+  }, [results, activeLanguage, channelTag, imageUrl]);
+
+  useEffect(() => {
+    if (step === 5) renderCard();
+  }, [step, renderCard]);
 
   const currentCard: CardData | null = results?.[activeLanguage]
     ? {
@@ -344,19 +354,38 @@ export default function UrlCreatePage() {
         </div>
       )}
 
-      {/* ── Step 5: 내보내기 ─── */}
+      {/* ── Step 5: 내보내기 (이미지 직접 표시) ─── */}
       {step === 5 && (
-        <div className="card space-y-5">
-          <h3 className="text-base font-semibold">내보내기</h3>
-          <div className="flex gap-3">
-            <button onClick={handleDownload} className="btn-primary">
-              <span className="flex items-center gap-2">
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
-                PNG 다운로드 ({activeLanguage.toUpperCase()})
-              </span>
-            </button>
+        <div className="space-y-4">
+          <div className="card">
+            <h3 className="mb-4 text-base font-semibold">완성된 카드뉴스</h3>
+            {rendering && (
+              <div className="flex flex-col items-center gap-4 py-16">
+                <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-[var(--accent)]" />
+                <p className="text-sm text-[var(--muted)]">이미지를 생성하고 있습니다...</p>
+              </div>
+            )}
+            {renderError && (
+              <div className="rounded-xl bg-red-50 p-4 text-sm text-red-600">
+                렌더링 실패: {renderError}
+              </div>
+            )}
+            {renderedImage && (
+              <div className="mx-auto max-w-md">
+                <img
+                  src={renderedImage}
+                  alt="카드뉴스"
+                  className="w-full rounded-xl shadow-lg"
+                  style={{ aspectRatio: '4 / 5' }}
+                />
+                <p className="mt-3 text-center text-xs text-[var(--muted)]">
+                  이미지를 길게 누르거나 우클릭하여 저장하세요
+                </p>
+              </div>
+            )}
           </div>
-          <div className="flex gap-3 border-t border-[var(--border)] pt-5">
+
+          <div className="flex gap-3">
             <button onClick={() => setStep(4)} className="btn-secondary">이전</button>
             <button
               onClick={() => {

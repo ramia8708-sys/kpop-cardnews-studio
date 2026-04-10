@@ -2,7 +2,6 @@ export const runtime = 'nodejs';
 
 import { NextRequest, NextResponse } from 'next/server';
 import satori from 'satori';
-import sharp from 'sharp';
 import type { Artist, CardData } from '@/types';
 import { createElement } from 'react';
 import CardTemplate from '@/components/CardTemplate';
@@ -61,7 +60,7 @@ async function loadFonts(): Promise<FontData[]> {
   return fontEntries;
 }
 
-// ─── POST 핸들러 ─────────────────────────────────────
+// ─── POST 핸들러: SVG 문자열 반환 (클라이언트에서 PNG 변환) ──
 interface RenderRequest {
   card: CardData;
   artist: Artist;
@@ -103,17 +102,7 @@ export async function POST(req: NextRequest) {
       })),
     });
 
-    const svgBuffer = Buffer.from(svg);
-    const pngBuffer = await sharp(svgBuffer).png().toBuffer();
-    if (!pngBuffer) {
-      return NextResponse.json(
-        { error: 'Render failed', detail: 'sharp returned empty buffer' },
-        { status: 500 }
-      );
-    }
-    const image = pngBuffer.toString('base64');
-
-    return NextResponse.json({ image });
+    return NextResponse.json({ svg });
   } catch (err) {
     console.error('[render] Error:', err);
     return NextResponse.json(

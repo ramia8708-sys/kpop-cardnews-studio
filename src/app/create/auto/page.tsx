@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useCardNewsStore } from '@/store/cardnewsStore';
 import ArtistPicker from '@/components/ArtistPicker';
 import LanguagePicker from '@/components/LanguagePicker';
 import CardPreview from '@/components/CardPreview';
 import ImageUploader from '@/components/ImageUploader';
 import type { CardData } from '@/types';
+import { svgToPng } from '@/lib/svgToPng';
 
 const STEP_LABELS = [
   '아티스트 선택',
@@ -19,11 +20,53 @@ const STEP_LABELS = [
 
 export default function AutoCreatePage() {
   const s = useCardNewsStore();
+  const [renderedImage, setRenderedImage] = useState('');
+  const [rendering, setRendering] = useState(false);
+  const [renderError, setRenderError] = useState('');
 
   useEffect(() => {
     const saved = localStorage.getItem('channel_tag');
     if (saved) s.setChannelTag(saved);
   }, []);
+
+  const renderCard = useCallback(async () => {
+    if (!s.results || !s.artist) return;
+    const content = s.results[s.activeLanguage];
+    if (!content) return;
+
+    setRendering(true);
+    setRenderError('');
+    setRenderedImage('');
+
+    const card: CardData = {
+      tag: s.channelTag || s.artist.name,
+      headline: content.headline,
+      image_url: s.imageUrl,
+    };
+
+    try {
+      const res = await fetch('/api/render', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ card, artist: s.artist, language: s.activeLanguage }),
+      });
+      const data = await res.json();
+      if (!data.svg) {
+        setRenderError(data.detail || data.error || '렌더링 실패');
+        return;
+      }
+      const pngDataUrl = await svgToPng(data.svg);
+      setRenderedImage(pngDataUrl);
+    } catch (err) {
+      setRenderError(String(err));
+    } finally {
+      setRendering(false);
+    }
+  }, [s.results, s.artist, s.activeLanguage, s.channelTag, s.imageUrl]);
+
+  useEffect(() => {
+    if (s.step === 6) renderCard();
+  }, [s.step, renderCard]);
 
   const handleSearchNews = async () => {
     if (!s.artist) return;
@@ -54,38 +97,6 @@ export default function AutoCreatePage() {
       s.prevStep();
     } finally {
       s.setGenerating(false);
-    }
-  };
-
-  const handleDownload = async () => {
-    if (!s.results || !s.artist) return;
-    const content = s.results[s.activeLanguage];
-    if (!content) return;
-
-    const card: CardData = {
-      tag: s.channelTag || s.artist.name,
-      headline: content.headline,
-      image_url: s.imageUrl,
-    };
-
-    try {
-      const res = await fetch('/api/render', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ card, artist: s.artist, language: s.activeLanguage }),
-      });
-      const data = await res.json();
-      if (!data.image) {
-        alert('렌더링 실패: ' + (data.detail || data.error || '알 수 없는 오류'));
-        return;
-      }
-
-      const link = document.createElement('a');
-      link.href = `data:image/png;base64,${data.image}`;
-      link.download = `${s.artist.name}_${s.activeLanguage}.png`;
-      link.click();
-    } catch (err) {
-      alert('다운로드 실패: ' + String(err));
     }
   };
 
@@ -313,27 +324,38 @@ export default function AutoCreatePage() {
         </div>
       )}
 
-      {/* ── Step 6: 내보내기 ───────────────────── */}
+      {/* ── Step 6: 내보내기 (이미지 직접 표시) ───────────────────── */}
       {s.step === 6 && (
-        <div className="card space-y-5">
-          <h3 className="text-base font-semibold">내보내기</h3>
-          <div className="flex gap-3">
-            <button onClick={handleDownload} className="btn-primary">
-              <span className="flex items-center gap-2">
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
-                PNG 다운로드 ({s.activeLanguage.toUpperCase()})
-              </span>
-            </button>
-            <button
-              disabled
-              className="btn-secondary cursor-not-allowed opacity-50"
-              title="Instagram 연결 후 활성화됩니다"
-            >
-              Instagram 게시
-            </button>
+        <div className="space-y-4">
+          <div className="card">
+            <h3 className="mb-4 text-base font-semibold">완성된 카드뉴스</h3>
+            {rendering && (
+              <div className="flex flex-col items-center gap-4 py-16">
+                <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-[var(--accent)]" />
+                <p className="text-sm text-[var(--muted)]">이미지를 생성하고 있습니다...</p>
+              </div>
+            )}
+            {renderError && (
+              <div className="rounded-xl bg-red-50 p-4 text-sm text-red-600">
+                렌더링 실패: {renderError}
+              </div>
+            )}
+            {renderedImage && (
+              <div className="mx-auto max-w-md">
+                <img
+                  src={renderedImage}
+                  alt="카드뉴스"
+                  className="w-full rounded-xl shadow-lg"
+                  style={{ aspectRatio: '4 / 5' }}
+                />
+                <p className="mt-3 text-center text-xs text-[var(--muted)]">
+                  이미지를 길게 누르거나 우클릭하여 저장하세요
+                </p>
+              </div>
+            )}
           </div>
-          <p className="text-xs text-[var(--muted)]">Instagram 게시는 계정 연결 후 사용할 수 있습니다.</p>
-          <div className="flex gap-3 border-t border-[var(--border)] pt-5">
+
+          <div className="flex gap-3">
             <button onClick={s.prevStep} className="btn-secondary">이전</button>
             <button onClick={s.reset} className="btn-secondary">처음부터</button>
           </div>
